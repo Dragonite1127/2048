@@ -1,18 +1,23 @@
 import pygame
 from pygame import transform
 import os
-import Tile
 import Board
+import Button
 
 DIMENSION = 4
+TILE_SIZE = 100
 WIDTH, HEIGHT = 100 * DIMENSION, 100 * DIMENSION
-SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
+TOTAL_WIDTH, TOTAL_HEIGHT = WIDTH , HEIGHT + 50
+SCREEN = pygame.display.set_mode((TOTAL_WIDTH, TOTAL_HEIGHT))
 pygame.display.set_caption("2048 by Mehul Gandhi")
-LIGHT_BROWN = (253, 222, 179)
+LIGHT_YELLOW = (253, 222, 179)
+BROWN = [210, 105, 30]
+DARK_BROWN = [165, 69, 69]
+LIGHT_BROWN = [165, 69, 50]
 WHITE = (255, 255, 255)
 FPS = 60
-TILE_SIZE = 100
 TRANSFORM = (WIDTH / 4, HEIGHT / 4)
+
 
 BLANK = pygame.image.load(os.path.join("assets", "blank.png"))
 _2 = pygame.image.load(os.path.join("assets", "2.png"))
@@ -32,7 +37,7 @@ _16384 = pygame.image.load(os.path.join("assets", "16384.png"))
 _32768 = pygame.image.load(os.path.join("assets", "32768.png"))
 _65536 = pygame.image.load(os.path.join("assets", "65536.png"))
 
-
+button = pygame.Rect((TILE_SIZE * DIMENSION) - TILE_SIZE, 0, TILE_SIZE, int(TILE_SIZE /2))
 
 def main():
     clock = pygame.time.Clock()
@@ -42,7 +47,10 @@ def main():
     while run:
         clock.tick(FPS)
         draw_window()
-        drawGrid(game)
+        rv = drawGrid(game)
+        if rv is not None:
+            game = rv
+        pygame.display.update()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -61,7 +69,7 @@ def main():
 
 
 def draw_window():
-    SCREEN.fill(LIGHT_BROWN)
+    SCREEN.fill(LIGHT_YELLOW)
 
 
 """Draws out the 2048 matrix grid."""
@@ -75,18 +83,22 @@ def drawGrid(game):
             # SCREEN.blit(transform.scale(BLANK, TRANSFORM), (i, j))
     a = 0
     b = 0
-    for i in range(0, WIDTH, TILE_SIZE):
+    for i in range(50, TOTAL_HEIGHT, TILE_SIZE):
         b = 0
-        for j in range(0, HEIGHT, TILE_SIZE):
-            x = game.board[a][b].path
+        for j in range(0, TOTAL_WIDTH, TILE_SIZE):
             SCREEN.blit(transform.scale(game.board[a][b].path, TRANSFORM), (j, i))
             b += 1
         a += 1
-            #SCREEN.blit(transform.scale(game.board[i][j].path), (i, j))
-    # SCREEN.blit(transform.scale(_2, TRANSFORM), (0, 0))
-    # SCREEN.blit(transform.scale(_4, TRANSFORM), (100, 0))
-    # SCREEN.blit(transform.scale(_65536, TRANSFORM), (200, 0))
-    pygame.display.update()
+    drawScore(game)
+    if Button.newGame.draw_button():
+        game = Board.Board(DIMENSION, False)
+        game.addTwoOrFour()
+        return game
+
+def drawScore(game):
+    buttonScore = Button.score
+    buttonScore.text = f"Score: {game.score}"
+    buttonScore.drawText()
 
 
 if __name__ == "__main__":

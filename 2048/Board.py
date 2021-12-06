@@ -58,6 +58,201 @@ class Board:
     """Shifts the contents of the board."""
     def shift(self, direction):
         assert isinstance(direction, str)
+        changed = False
+        if direction.lower() == "up":
+            if self.shiftUp():
+                changed = True
+            if self.combineUp():
+                changed = True
+            if self.shiftUp():
+                changed = True
+        elif direction.lower() == "down":
+            if self.shiftDown():
+                changed = True
+            if self.combineDown():
+                changed = True
+            if self.shiftDown():
+                changed = True
+        elif direction.lower() == "left":
+            if self.shiftLeft():
+                changed = True
+            if self.combineLeft():
+                changed = True
+            if self.shiftLeft():
+                changed = True
+        elif direction.lower() == "right":
+            if self.shiftRight():
+                changed = True
+            if self.combineRight():
+                changed = True
+            if self.shiftRight():
+                changed = True
+        else:
+            raise TypeError("Wrong variable type for direction.")
+        if changed:
+            self.addTwoOrFour()
+    """Shifts all tiles up."""
+    def shiftUp(self):
+        changed = False
+        row = 0
+        while row <= self.dimension - 1:
+            for col in range(self.dimension):
+                if isinstance(self.board[row][col], Tile.Tile):
+                    tempRow = row
+                    while tempRow > 0 and isinstance(self.board[tempRow - 1][col], Tile.EmptyTile): #swaps empty tiles
+                        changed = True
+                        self.swap(tempRow, col, tempRow - 1, col)
+                        tempRow -= 1
+            row += 1
+        return changed
+    def combineUp(self):
+        row = 0
+        changed = False
+        while row <= self.dimension - 1:
+            for col in range(self.dimension):
+                if isinstance(self.board[row][col], Tile.Tile):
+                    tempRow = row
+                    while tempRow > 0:
+                        if self.board[tempRow - 1][col].value == self.board[tempRow][col].value != 0: #combines values
+                            changed = True
+                            self.changeValue(self.board[tempRow - 1][col], tempRow, col)
+                            tempRow -= 1
+                        tempRow -= 1
+            row += 1
+        return changed
+    """Shifts all the tiles down."""
+    def shiftDown(self):
+        changed = False
+        row = self.dimension - 1
+        while row >= 0:
+            for col in range(len(self.board)):
+                if isinstance(self.board[row][col], Tile.Tile):
+                    tempRow = row
+                    while tempRow < self.dimension - 1:
+                        if isinstance(self.board[tempRow + 1][col], Tile.EmptyTile): #swaps empty tiles
+                            changed = True
+                            self.swap(tempRow, col, tempRow + 1, col)
+                        tempRow += 1
+            row -= 1
+        return changed
+    def combineDown(self):
+        row = self.dimension - 1
+        changed = False
+        while row >= 0:
+            for col in range(len(self.board)):
+                if isinstance(self.board[row][col], Tile.Tile):
+                    tempRow = row
+                    while tempRow < self.dimension - 1:
+                        if self.board[tempRow + 1][col].value == self.board[tempRow][col].value != 0: #combines values
+                            changed = True
+                            self.changeValue(self.board[tempRow + 1][col], tempRow, col)
+                            tempRow += 1
+                        tempRow += 1
+            row -= 1
+        return changed
+    """Shifts all the tiles left."""
+    def shiftLeft(self):
+        row = 0
+        changed = False
+        while row <= self.dimension - 1:
+            col = 0
+            while col <= self.dimension - 1:
+                if isinstance(self.board[row][col], Tile.Tile):
+                    tempCol = col
+                    while tempCol > 0 and isinstance(self.board[row][tempCol - 1], Tile.EmptyTile):
+                        changed = True
+                        self.swap(row, tempCol - 1, row, tempCol)
+                        tempCol -= 1
+                col += 1
+            row += 1
+        return changed
+    def combineLeft(self):
+        row = 0
+        changed = False
+        while row <= self.dimension - 1:
+            col = 0
+            while col <= self.dimension - 1:
+                if isinstance(self.board[row][col], Tile.Tile):
+                    tempCol = col
+                    while tempCol > 0:
+                        if self.board[row][tempCol - 1].value == self.board[row][tempCol].value != 0:
+                            changed = True
+                            self.changeValue(self.board[row][tempCol - 1], row, tempCol)
+                            tempCol -= 1
+                        tempCol -= 1
+                col += 1
+            row += 1
+        return changed
+    """Shifts all the tiles right."""
+    def shiftRight(self):
+        changed = False
+        row = self.dimension - 1
+        while row >= 0:
+            col = self.dimension - 1
+            while col >= 0:
+                if col != self.dimension - 1 and isinstance(self.board[row][col], Tile.Tile):
+                    tempCol = col
+                    while tempCol < self.dimension - 1:
+                        if isinstance(self.board[row][tempCol + 1], Tile.EmptyTile):
+                            changed = True
+                            self.swap(row, tempCol + 1, row, tempCol)
+                        tempCol += 1
+                col -= 1
+            row -= 1
+        return changed
+    """Combines all tiles to the right."""
+    def combineRight(self):
+        row = self.dimension - 1
+        changed = False
+        while row >= 0:
+            col = self.dimension - 1
+            while col >= 0:
+                if col != self.dimension - 1 and isinstance(self.board[row][col], Tile.Tile):
+                    tempCol = col
+                    while tempCol < self.dimension - 1:
+                        if self.board[row][tempCol + 1].value == self.board[row][tempCol].value != 0:
+                            changed = True
+                            self.changeValue(self.board[row][tempCol + 1], row, tempCol)
+                            tempCol += 1
+                        tempCol += 1
+                col -= 1
+            row -= 1
+        return changed
+    """Swaps the position of two squares on the board."""
+    def swap(self, a, b, c, d):
+        temp = self.board[a][b]
+        self.board[a][b] = self.board[c][d]
+        self.board[c][d] = temp
+        if not self.clone:
+            # time.sleep(0.01)
+            main.draw_window()
+            main.drawGrid(self)
+
+
+    """Returns true if and only if the game is over.
+    A game is over when no moves can be made on the board."""
+    def gameOver(self):
+        boardCopy = Board(main.DIMENSION, True)
+        for i in range(self.dimension):
+            for j in range(self.dimension):
+                boardCopy.board[i][j].value = self.board[i][j].value
+                boardCopy.board[i][j].path = self.board[i][j].path
+        for direction in ["up", "down", "left", "right"]:
+            boardCopy.shiftCopy(direction)
+        for i in range(self.dimension):
+            for j in range(self.dimension):
+                boardValue = boardCopy.board[i][j].value
+                selfValue = self.board[i][j].value
+                if selfValue != boardValue:
+                    return False
+        return True
+
+    """A helper method for gameOver
+    that determines whether or not
+    there is a move the player can make.
+    Shifts the contents of the board."""
+    def shiftCopy(self, direction):
+        assert isinstance(direction, str)
         if direction.lower() == "up":
             self.shiftUp()
             self.combineUp()
@@ -77,139 +272,6 @@ class Board:
         else:
             raise TypeError("Wrong variable type for direction.")
         self.addTwoOrFour()
-    """Shifts all tiles up."""
-    def shiftUp(self):
-        row = 0
-        while row <= self.dimension - 1:
-            for col in range(self.dimension):
-                if isinstance(self.board[row][col], Tile.Tile):
-                    tempRow = row
-                    while tempRow > 0 and isinstance(self.board[tempRow - 1][col], Tile.EmptyTile): #swaps empty tiles
-                        self.swap(tempRow, col, tempRow - 1, col)
-                        tempRow -= 1
-            row += 1
-    def combineUp(self):
-        row = 0
-        while row <= self.dimension - 1:
-            for col in range(self.dimension):
-                if isinstance(self.board[row][col], Tile.Tile):
-                    tempRow = row
-                    while tempRow > 0:
-                        if self.board[tempRow - 1][col].value == self.board[tempRow][col].value != 0: #combines values
-                            self.changeValue(self.board[tempRow - 1][col], tempRow, col)
-                            tempRow -= 1
-                        tempRow -= 1
-            row += 1
-    """Shifts all the tiles down."""
-    def shiftDown(self):
-        row = self.dimension - 1
-        while row >= 0:
-            for col in range(len(self.board)):
-                if isinstance(self.board[row][col], Tile.Tile):
-                    tempRow = row
-                    while tempRow < self.dimension - 1:
-                        if isinstance(self.board[tempRow + 1][col], Tile.EmptyTile): #swaps empty tiles
-                            self.swap(tempRow, col, tempRow + 1, col)
-                        tempRow += 1
-            row -= 1
-    def combineDown(self):
-        row = self.dimension - 1
-        while row >= 0:
-            for col in range(len(self.board)):
-                if isinstance(self.board[row][col], Tile.Tile):
-                    tempRow = row
-                    while tempRow < self.dimension - 1:
-                        if self.board[tempRow + 1][col].value == self.board[tempRow][col].value != 0: #combines values
-                            self.changeValue(self.board[tempRow + 1][col], tempRow, col)
-                            tempRow += 1
-                        tempRow += 1
-            row -= 1
-    """Shifts all the tiles left."""
-    def shiftLeft(self):
-        row = 0
-        while row <= self.dimension - 1:
-            col = 0
-            while col <= self.dimension - 1:
-                if isinstance(self.board[row][col], Tile.Tile):
-                    tempCol = col
-                    while tempCol > 0 and isinstance(self.board[row][tempCol - 1], Tile.EmptyTile):
-                        self.swap(row, tempCol - 1, row, tempCol)
-                        tempCol -= 1
-                col += 1
-            row += 1
-    def combineLeft(self):
-        row = 0
-        while row <= self.dimension - 1:
-            col = 0
-            while col <= self.dimension - 1:
-                if isinstance(self.board[row][col], Tile.Tile):
-                    tempCol = col
-                    while tempCol > 0:
-                        if self.board[row][tempCol - 1].value == self.board[row][tempCol].value != 0:
-                            self.changeValue(self.board[row][tempCol - 1], row, tempCol)
-                            tempCol -= 1
-                        tempCol -= 1
-                col += 1
-            row += 1
-
-    """Shifts all the tiles right."""
-    def shiftRight(self):
-        row = self.dimension - 1
-        while row >= 0:
-            col = self.dimension - 1
-            while col >= 0:
-                if col != self.dimension - 1 and isinstance(self.board[row][col], Tile.Tile):
-                    tempCol = col
-                    while tempCol < self.dimension - 1:
-                        if isinstance(self.board[row][tempCol + 1], Tile.EmptyTile):
-                            self.swap(row, tempCol + 1, row, tempCol)
-                        tempCol += 1
-                col -= 1
-            row -= 1
-    """Combines all tiles to the right."""
-    def combineRight(self):
-        row = self.dimension - 1
-        while row >= 0:
-            col = self.dimension - 1
-            while col >= 0:
-                if col != self.dimension - 1 and isinstance(self.board[row][col], Tile.Tile):
-                    tempCol = col
-                    while tempCol < self.dimension - 1:
-                        if self.board[row][tempCol + 1].value == self.board[row][tempCol].value != 0:
-                            self.changeValue(self.board[row][tempCol + 1], row, tempCol)
-                            tempCol += 1
-                        tempCol += 1
-                col -= 1
-            row -= 1
-
-    """Swaps the position of two squares on the board."""
-    def swap(self, a, b, c, d):
-        temp = self.board[a][b]
-        self.board[a][b] = self.board[c][d]
-        self.board[c][d] = temp
-        if not self.clone:
-            time.sleep(0.01)
-            main.draw_window()
-            main.drawGrid(self)
-
-
-    """Returns true if and only if the game is over.
-    A game is over when no moves can be made on the board."""
-    def gameOver(self):
-        boardCopy = Board(main.DIMENSION, True)
-        for i in range(self.dimension):
-            for j in range(self.dimension):
-                boardCopy.board[i][j].value = self.board[i][j].value
-                boardCopy.board[i][j].path = self.board[i][j].path
-        for direction in ["up", "down", "left", "right"]:
-            boardCopy.shift(direction)
-        for i in range(self.dimension):
-            for j in range(self.dimension):
-                boardValue = boardCopy.board[i][j].value
-                selfValue = self.board[i][j].value
-                if selfValue != boardValue:
-                    return False
-        return True
 
     """Changes the value of two tiles.
         @:parameter tile - The tile to change
@@ -263,5 +325,3 @@ class Board:
             raise ValueError("Error in changeValue function.")
         self.score += tile.value
         self.board[i][j] = Tile.EmptyTile()
-
-
